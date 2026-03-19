@@ -11,7 +11,7 @@ import { PatientsModule } from './patients/patients.module';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'postgres',
+      password: 'chiru123',
       database: 'hospital_db',
       autoLoadEntities: true,
       synchronize: true,

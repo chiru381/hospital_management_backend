@@ -4,13 +4,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
 } from 'typeorm';
 
 @Entity('patients')
 export class Patient {
   @PrimaryGeneratedColumn()
-  id: string;
+  id: number;
 
   @Column()
   firstName: string;
@@ -42,6 +41,4 @@ export class Patient {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn()
-  deletedAt?: Date;
 }

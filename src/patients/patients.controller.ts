@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   Query,
@@ -27,17 +27,17 @@ export class PatientsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.patientsService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDto: UpdatePatientDto) {
+  @Put(':id')
+  update(@Param('id') id: number, @Body() updateDto: UpdatePatientDto) {
     return this.patientsService.update(id, updateDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.patientsService.remove(id);
-  }
+    return this.patientsService.remove(Number(id));
+}
 }

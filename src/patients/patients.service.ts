@@ -50,7 +50,7 @@ export class PatientsService {
     };
   }
 
-  async findOne(id: string): Promise<Patient> {
+  async findOne(id: number): Promise<Patient> {
     const patient = await this.patientRepo.findOne({
       where: { id },
     });
@@ -62,7 +62,7 @@ export class PatientsService {
     return patient;
   }
 
-  async update(id: string, updateDto: UpdatePatientDto): Promise<Patient> {
+  async update(id: number, updateDto: UpdatePatientDto): Promise<Patient> {
     const patient = await this.findOne(id);
 
     Object.assign(patient, updateDto);
@@ -70,10 +70,10 @@ export class PatientsService {
     return await this.patientRepo.save(patient);
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async remove(id: number): Promise<{ message: string }> {
     await this.findOne(id);
 
-    await this.patientRepo.softDelete(id);
+    await this.patientRepo.delete(id);
 
     return { message: 'Patient deleted successfully' };
   }
