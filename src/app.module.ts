@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PatientsModule } from './patients/patients.module';
+import { AppModuleModule } from './modules/module.module';
 
 @Module({
   imports: [
@@ -15,8 +16,10 @@ import { PatientsModule } from './patients/patients.module';
       database: 'hospital_db',
       autoLoadEntities: true,
       synchronize: true,
+      logging: true,
     }),
     PatientsModule,
+    AppModuleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
