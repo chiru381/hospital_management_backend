@@ -1,12 +1,12 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/user.entity';
 import { Role } from '../roles/role.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { JwtUtilsService } from '../utils/jwt-utils.service';
 
 @Injectable()
 export class AuthService {
@@ -15,10 +15,10 @@ export class AuthService {
     private userRepository: Repository<User>,
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
-    private jwtService: JwtService,
+    private jwtUtilsService: JwtUtilsService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async register(registerDto: RegisterDto): Promise<{ message: string; user: any }> {
     const { confirmPassword, ...userData } = registerDto;
 
     if (userData.password !== confirmPassword) {
@@ -51,13 +51,20 @@ export class AuthService {
     await this.userRepository.save(user);
 
     const payload = { sub: user.id, email: user.email, role: role.rolename };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const accessToken = this.jwtUtilsService.generateAccessToken(payload);
+    const refreshToken = this.jwtUtilsService.generateRefreshToken(payload);
 
-    return { accessToken, refreshToken };
+    const { password, ...userDetails } = user;
+    return { 
+      message: 'User registered successfully', 
+      user: {
+        ...userDetails,
+        role: role.rolename
+      }
+    };
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async login(loginDto: LoginDto): Promise<{ message: string; accessToken: string; refreshToken: string }> {
     const user = await this.userRepository.findOne({
       where: { email: loginDto.email },
       relations: ['role'],
@@ -72,15 +79,19 @@ export class AuthService {
     }
 
     const payload = { sub: user.id, email: user.email, role: user.role.rolename };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const accessToken = this.jwtUtilsService.generateAccessToken(payload);
+    const refreshToken = this.jwtUtilsService.generateRefreshToken(payload);
 
-    return { accessToken, refreshToken };
+    return { 
+      message: 'Login successful', 
+      accessToken, 
+      refreshToken 
+    };
   }
 
   async refreshToken(token: string): Promise<{ accessToken: string }> {
     try {
-      const payload = this.jwtService.verify(token);
+      const payload = this.jwtUtilsService.verifyToken(token);
       const user = await this.userRepository.findOne({
         where: { id: payload.sub },
         relations: ['role'],
@@ -91,7 +102,7 @@ export class AuthService {
       }
 
       const newPayload = { sub: user.id, email: user.email, role: user.role.rolename };
-      const accessToken = this.jwtService.sign(newPayload, { expiresIn: '15m' });
+      const accessToken = this.jwtUtilsService.generateAccessToken(newPayload);
 
       return { accessToken };
     } catch (error) {
